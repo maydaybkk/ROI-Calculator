@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive ROI Calculator for Product Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A task-oriented SPA with three main sections: 1) A landing/introduction area that explains the tool's purpose and the importance of ROI. 2) The core feature: an interactive ROI calculator that allows users to input costs and expected returns, which dynamically updates a results dashboard and a visual chart. This transforms the report's methodology into a usable tool. 3) A reference section using accordions to house the detailed framework concepts (cost/return types, caveats) from the report, making them accessible without cluttering the primary user flow. This structure prioritizes the user's main goal—calculating ROI—while providing necessary context on demand. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: "Why is ROI Important?". Goal: Inform. Viz/Method: Grid of styled cards with Unicode icons (HTML/CSS). Interaction: Hover effects. Justification: More visually engaging and scannable than a list.
+        - Report Info: Step-by-step calculation. Goal: Enable user task. Viz/Method: Interactive HTML form. Interaction: Real-time calculation and DOM updates via JS on user input. Justification: Turns a passive guide into an active tool.
+        - Report Info: Cost vs. Return comparison. Goal: Compare. Viz/Method: Dynamic Bar Chart (Chart.js/Canvas). Interaction: Updates instantly with form inputs; tooltips on hover. Justification: Provides immediate visual feedback on the user's data.
+        - Report Info: Detailed lists of components/caveats. Goal: Organize/Reference. Viz/Method: Accordion-style collapsible sections (HTML/JS). Interaction: Click to expand/collapse. Justification: Reduces information overload on the main interface.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .accordion-content.h-0 { height: 0; }
+        .accordion-content { transition: height 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-[#FDFBF8] text-[#4a4a4a]">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold text-[#D97706]">Discovery ROI</div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#calculator" class="text-gray-600 hover:text-[#D97706] transition-colors duration-300">Calculator</a>
+                <a href="#framework" class="text-gray-600 hover:text-[#D97706] transition-colors duration-300">Framework</a>
+                <a href="#about" class="text-gray-600 hover:text-[#D97706] transition-colors duration-300">About</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-600 focus:outline-none">
+                <span class="w-6 h-6 block">☰</span>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#calculator" class="block py-2 px-6 text-sm text-gray-700 hover:bg-gray-100">Calculator</a>
+            <a href="#framework" class="block py-2 px-6 text-sm text-gray-700 hover:bg-gray-100">Framework</a>
+            <a href="#about" class="block py-2 px-6 text-sm text-gray-700 hover:bg-gray-100">About</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section id="about" class="text-center mb-24">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Evaluate Your Product Ideas</h1>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-8">This tool helps you apply a simple Return on Investment (ROI) framework during the Product Discovery phase. By estimating costs and potential benefits early, you can make data-driven decisions, prioritize effectively, and build a strong business case for your initiatives before committing to development.</p>
+            <a href="#calculator" class="bg-[#D97706] text-white font-bold py-3 px-8 rounded-full hover:bg-[#B45309] transition-all duration-300 transform hover:scale-105 inline-block">Start Calculating</a>
+        </section>
+
+        <section class="mb-24">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Why is ROI Important in Product Discovery?</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-transform transform hover:-translate-y-1">
+                    <div class="text-3xl mb-3 text-[#D97706]">🎯</div>
+                    <h3 class="font-bold text-lg mb-2">Objective Prioritization</h3>
+                    <p class="text-gray-600 text-sm">Compare and rank ideas based on potential financial impact, not just gut feeling.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-transform transform hover:-translate-y-1">
+                    <div class="text-3xl mb-3 text-[#D97706]">✅</div>
+                    <h3 class="font-bold text-lg mb-2">Quantitative Validation</h3>
+                    <p class="text-gray-600 text-sm">Provide a solid business case for new features, moving beyond qualitative insights.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-transform transform hover:-translate-y-1">
+                    <div class="text-3xl mb-3 text-[#D97706]">💡</div>
+                    <h3 class="font-bold text-lg mb-2">Smarter Resource Allocation</h3>
+                    <p class="text-gray-600 text-sm">Justify the need for budget, time, and personnel by demonstrating potential returns.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-transform transform hover:-translate-y-1">
+                    <div class="text-3xl mb-3 text-[#D97706]">🛡️</div>
+                    <h3 class="font-bold text-lg mb-2">Early Risk Mitigation</h3>
+                    <p class="text-gray-600 text-sm">Identify and discard low-value ideas early, preventing wasteful investment in development.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-transform transform hover:-translate-y-1">
+                    <div class="text-3xl mb-3 text-[#D97706]">🤝</div>
+                    <h3 class="font-bold text-lg mb-2">Stakeholder Alignment</h3>
+                    <p class="text-gray-600 text-sm">Create a clear financial narrative that gets everyone on the same page, faster.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-transform transform hover:-translate-y-1">
+                    <div class="text-3xl mb-3 text-[#D97706]">📈</div>
+                    <h3 class="font-bold text-lg mb-2">Baseline for Accountability</h3>
+                    <p class="text-gray-600 text-sm">Establish success metrics against which the product's actual performance can be measured.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="calculator" class="bg-white p-6 sm:p-8 md:p-12 rounded-2xl shadow-lg border border-gray-100 mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">Interactive ROI Calculator</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl mx-auto">Enter your estimated costs and benefits below to see the potential ROI. The dashboard will update in real-time. We've pre-filled the fields with an example to get you started.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-3">
+                    <form id="roi-form">
+                        <div class="mb-8">
+                            <h3 class="text-2xl font-semibold mb-4 text-red-700">1. Estimate Discovery Costs (Investment)</h3>
+                            <div id="cost-items" class="space-y-3"></div>
+                            <button type="button" id="add-cost-btn" class="mt-3 text-sm font-medium text-[#D97706] hover:text-[#B45309]">+ Add Cost Item</button>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold mb-4 text-green-700">2. Estimate Expected Benefits (Returns)</h3>
+                            <div id="return-items" class="space-y-3"></div>
+                            <button type="button" id="add-return-btn" class="mt-3 text-sm font-medium text-[#D97706] hover:text-[#B45309]">+ Add Benefit Item</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="lg:col-span-2 bg-gray-50/70 p-6 rounded-xl border">
+                    <h3 class="text-2xl font-semibold mb-4 text-center">3. Results Dashboard</h3>
+                    <div class="space-y-4 text-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Total Discovery Investment</p>
+                            <p id="total-cost" class="text-3xl font-bold text-red-600">$0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total Estimated Returns</p>
+                            <p id="total-return" class="text-3xl font-bold text-green-600">$0</p>
+                        </div>
+                        <div class="pt-4">
+                            <p class="text-sm font-medium text-gray-500">Projected ROI</p>
+                            <p id="roi-result" class="text-5xl font-bold text-gray-800">0%</p>
+                            <p id="roi-interpretation" class="text-xs text-gray-500 mt-1 h-8"></p>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <div class="chart-container">
+                            <canvas id="roiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="framework" class="mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">The Discovery ROI Framework</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl mx-auto">Explore the core concepts behind the calculation. These are the types of costs and benefits you should consider when making your estimates.</p>
+            </div>
+            <div id="accordion-container" class="space-y-4 max-w-4xl mx-auto">
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto px-6 py-8 text-center text-sm text-gray-400">
+            <p>This interactive tool is an adaptation of the "ROI Calculation Deliverable for Product Discovery" guide.</p>
+            <p>&copy; 2025 Product Discovery Tools. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const costItemsContainer = document.getElementById('cost-items');
+            const returnItemsContainer = document.getElementById('return-items');
+            const addCostBtn = document.getElementById('add-cost-btn');
+            const addReturnBtn = document.getElementById('add-return-btn');
+            
+            const totalCostEl = document.getElementById('total-cost');
+            const totalReturnEl = document.getElementById('total-return');
+            const roiResultEl = document.getElementById('roi-result');
+            const roiInterpretationEl = document.getElementById('roi-interpretation');
+
+            const initialCosts = [
+                { label: 'Product Manager (2 weeks @ $2,000/wk)', value: 4000 },
+                { label: 'UX Designer (1 week @ $1,800/wk)', value: 1800 },
+                { label: 'User Research Tools (subscription)', value: 300 },
+                { label: 'User Testing Incentives (10 users)', value: 500 },
+            ];
+            
+            const initialReturns = [
+                { label: 'New Subscriptions (1yr projection)', value: 12000 },
+                { label: 'Reduced Support Costs (1yr projection)', value: 6000 },
+            ];
+
+            function createItemInput(container, label = '', value = '') {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2';
+                div.innerHTML = `
+                    <input type="text" placeholder="Description (e.g., Team Salaries)" value="${label}" class="flex-grow w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-[#D97706] focus:border-[#D97706]">
+                    <input type="number" placeholder="0" value="${value}" min="0" class="w-28 px-3 py-2 text-sm text-right bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-[#D97706] focus:border-[#D97706]">
+                    <button type="button" class="text-gray-400 hover:text-red-500 font-bold text-xl w-6 h-6 flex items-center justify-center">&times;</button>
+                `;
+                container.appendChild(div);
+
+                div.querySelector('button').addEventListener('click', () => {
+                    div.remove();
+                    updateCalculations();
+                });
+                
+                div.querySelectorAll('input').forEach(input => {
+                    input.addEventListener('input', updateCalculations);
+                });
+            }
+            
+            addCostBtn.addEventListener('click', () => createItemInput(costItemsContainer));
+            addReturnBtn.addEventListener('click', () => createItemInput(returnItemsContainer));
+            
+            function calculateTotal(container) {
+                let total = 0;
+                container.querySelectorAll('input[type="number"]').forEach(input => {
+                    total += parseFloat(input.value) || 0;
+                });
+                return total;
+            }
+
+            const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+
+            function updateCalculations() {
+                const totalCost = calculateTotal(costItemsContainer);
+                const totalReturn = calculateTotal(returnItemsContainer);
+                
+                totalCostEl.textContent = formatCurrency(totalCost);
+                totalReturnEl.textContent = formatCurrency(totalReturn);
+
+                let roi = 0;
+                let netProfit = totalReturn - totalCost;
+
+                if (totalCost > 0) {
+                    roi = (netProfit / totalCost) * 100;
+                }
+                
+                roiResultEl.textContent = `${roi.toFixed(1)}%`;
+
+                if (totalCost > 0){
+                    roiInterpretationEl.textContent = `For every $1 invested, you get back $${(netProfit/totalCost).toFixed(2)} in net profit.`;
+                } else {
+                    roiInterpretationEl.textContent = 'Enter costs to calculate ROI.';
+                }
+
+                updateChart(totalCost, totalReturn);
+            }
+
+            const ctx = document.getElementById('roiChart').getContext('2d');
+            const roiChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Investment', 'Return'],
+                    datasets: [{
+                        label: 'Amount ($)',
+                        data: [0, 0],
+                        backgroundColor: [
+                            'rgba(220, 38, 38, 0.6)',
+                            'rgba(22, 163, 74, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(220, 38, 38, 1)',
+                            'rgba(22, 163, 74, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            function updateChart(cost, returns) {
+                roiChart.data.datasets[0].data[0] = cost;
+                roiChart.data.datasets[0].data[1] = returns;
+                roiChart.update();
+            }
+
+            initialCosts.forEach(item => createItemInput(costItemsContainer, item.label, item.value));
+            initialReturns.forEach(item => createItemInput(returnItemsContainer, item.label, item.value));
+            updateCalculations();
+            
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const accordionData = [
+                {
+                    title: 'Types of Investment (Costs)',
+                    content: `<ul class="list-disc list-inside space-y-2">
+                        <li><strong>Personnel Costs:</strong> Salaries for PMs, UX Researchers, Designers, Engineers, etc. (prorated for time spent).</li>
+                        <li><strong>Tooling & Software:</strong> Subscriptions for research, analytics, and prototyping tools.</li>
+                        <li><strong>Research & Data Costs:</strong> Acquiring reports, and incentives for user interviews or testing.</li>
+                        <li><strong>Travel & Facilities:</strong> Costs for on-site user visits or workshops.</li>
+                        <li><strong>Consulting Services:</strong> Fees for external experts or agencies.</li>
+                    </ul>`
+                },
+                {
+                    title: 'Types of Returns (Benefits)',
+                    content: `<ul class="list-disc list-inside space-y-2">
+                        <li><strong>Revenue Generation:</strong> New sales, upsells, cross-sells, or increased conversion rates.</li>
+                        <li><strong>Cost Savings:</strong> Increased operational efficiency, or reduced customer support costs.</li>
+                        <li><strong>Customer Retention:</strong> Savings from reducing customer churn.</li>
+                        <li><strong>Market Share Growth:</strong> Attributed revenue from acquiring new customers.</li>
+                        <li><strong>Risk Reduction:</strong> Mitigating risks like compliance fines, which can be estimated as avoided costs.</li>
+                    </ul>`
+                },
+                {
+                    title: 'Important Considerations & Caveats',
+                    content: `<ul class="list-disc list-inside space-y-2">
+                        <li><strong>Estimation Accuracy:</strong> Be transparent about your assumptions. Early estimates will be imprecise.</li>
+                        <li><strong>Intangible Benefits:</strong> Acknowledge benefits that are hard to quantify, like brand loyalty or employee morale, alongside the numbers.</li>
+                        <li><strong>Time Value of Money:</strong> For long-term projects, remember that future money is worth less than today's. This simple ROI doesn't account for that.</li>
+                        <li><strong>Cross-Functional Input:</strong> Involve sales, marketing, and finance to get more accurate estimates for both costs and benefits.</li>
+                    </ul>`
+                }
+            ];
+
+            const accordionContainer = document.getElementById('accordion-container');
+            accordionData.forEach((item) => {
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'border border-gray-200 rounded-lg bg-white overflow-hidden';
+                
+                accordionItem.innerHTML = `
+                    <button class="w-full flex justify-between items-center text-left p-5 font-semibold text-gray-700 hover:bg-gray-50/50 focus:outline-none">
+                        <span>${item.title}</span>
+                        <span class="transform transition-transform duration-300 rotate-0 text-[#D97706] font-bold text-xl">&plus;</span>
+                    </button>
+                    <div class="accordion-content h-0 overflow-hidden">
+                        <div class="p-5 pt-0 text-gray-600 text-sm leading-relaxed">${item.content}</div>
+                    </div>
+                `;
+
+                const button = accordionItem.querySelector('button');
+                const content = accordionItem.querySelector('.accordion-content');
+                const icon = accordionItem.querySelector('span.transform');
+
+                button.addEventListener('click', () => {
+                    if (content.classList.contains('h-0')) {
+                        content.classList.remove('h-0');
+                        content.style.height = content.scrollHeight + 'px';
+                        icon.classList.add('rotate-45');
+                    } else {
+                        content.style.height = '0px';
+                        content.classList.add('h-0');
+                        icon.classList.remove('rotate-45');
+                    }
+                });
+                
+                accordionContainer.appendChild(accordionItem);
+            });
+        });
+    </script>
+</body>
+</html>
